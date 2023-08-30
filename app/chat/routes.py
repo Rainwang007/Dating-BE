@@ -1,52 +1,47 @@
-# routes.py
-from flask import Blueprint, request, jsonify, make_response
+
+from flask import Blueprint, request, jsonify, g
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from models import Chat, db
 
-chat_bp = Blueprint('chat', __name__)
+chat = Blueprint('chat', __name__)
 
-# 假设的聊天数据存储（通常应从数据库获取）
-chat_data = {
-    'chat1': {'messages': []},
-    'chat2': {'messages': []}
-}
-
-@chat_bp.route('/chats', methods=['GET'])
+@chat.route('/api/chat', methods=['GET'])
 @jwt_required()
-def get_chats():
+def get_chat_history():
+    current_user_id = get_jwt_identity()  # 使用JWT获取当前用户ID
+    target_user_id = request.args.get('target_user_id')  # 从请求参数中获取目标用户ID
+
+    if not target_user_id:
+        return jsonify({'error': 'Target user ID is required'}), 400
+
+    # 假设Chat模型有一个类方法get_chat_history来获取聊天记录
+    chat_history = Chat.get_chat_history(current_user_id, target_user_id)
+
+    if not chat_history:
+        return jsonify({'error': 'No chat history found'}), 404
+
+    return jsonify({'chat_history': chat_history}), 200
+
+@chat.route('/api/chat', methods=['POST'])
+@jwt_required()
+def send_message():
+    current_user_id = get_jwt_identity()  # 使用JWT获取当前用户ID
+    data = request.json  # 获取请求的JSON数据
+
+    target_user_id = data.get('target_user_id')
+    message_content = data.get('message')
+
+    if not target_user_id or not message_content:
+        return jsonify({'error': 'Target user ID and message content are required'}), 400
+
     try:
-        current_user = get_jwt_identity()
-        # 实现获取聊天列表的逻辑，通常从数据库获取
-        return jsonify({"chats": list(chat_data.keys())})
+        # 创建新的Chat对象并保存到数据库
+        new_message = Chat(sender_id=current_user_id, receiver_id=target_user_id, content=message_content)
+        db.session.add(new_message)
+        db.session.commit()
+
+        return jsonify({'message': 'Message sent successfully'}), 201
+
     except Exception as e:
-        return make_response(jsonify({"error": str(e)}), 500)
-
-@chat_bp.route('/chats/<chat_id>/messages', methods=['GET', 'POST'])
-@jwt_required()
-def manage_messages(chat_id):
-    current_user = get_jwt_identity()
-
-    if chat_id not in chat_data:
-        return make_response(jsonify({"error": "Chat not found"}), 404)
-
-    if request.method == 'GET':
-        try:
-            # 获取聊天记录
-            messages = chat_data[chat_id]['messages']
-            return jsonify({"messages": messages})
-        except Exception as e:
-            return make_response(jsonify({"error": str(e)}), 500)
-
-    elif request.method == 'POST':
-        try:
-            message_data = request.json
-            message = {
-                'user': current_user,
-                'content': message_data['content']
-            }
-            # 实现发送消息的逻辑，通常存储消息到数据库
-            chat_data[chat_id]['messages'].append(message)
-            return jsonify({"message": "Message sent"})
-        except KeyError:
-            return make_response(jsonify({"error": "Content is required"}), 400)
-        except Exception as e:
-            return make_response(jsonify({"error": str(e)}), 500)
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
