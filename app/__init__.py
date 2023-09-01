@@ -28,7 +28,7 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # JWT 配置
-    app.config['JWT_SECRET_KEY'] = 'your-secret-key'
+    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 
     # 初始化各种扩展
     db.init_app(app)

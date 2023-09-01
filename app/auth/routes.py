@@ -15,7 +15,7 @@ auth = Blueprint('auth', __name__)
 logger = logging.getLogger(__name__)
 
 
-@auth.route('/register', methods=['POST'])
+@auth.route('/api/register', methods=['POST'])
 def register():
     data = request.get_json()
 
@@ -54,7 +54,7 @@ def register():
     return jsonify({'message': 'Registered successfully'}), 201
 
 
-@auth.route('/login', methods=['POST'])
+@auth.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
 
@@ -78,7 +78,7 @@ def login():
     token = jwt.encode({
     'user_id': 'some_user_id',
     'exp': datetime.datetime.utcnow() + datetime.timedelta(days=10)
-    }, os.getenv('JWT_SECRET_KEY'), algorithm='HS256')  # 请替换为你实际使用的密钥
+    }, os.getenv('JWT_SECRET_KEY'), algorithm='HS256') 
 
     return jsonify({'token': token}), 200
 
@@ -99,7 +99,7 @@ def pre_process():
     # 获取当前用户
     g.current_user = get_current_user()
 
-@auth.route('/logout', methods=['GET'])
+@auth.route('/api/logout', methods=['GET'])
 def logout():
     # 结束会话
     session.pop('user_id', None)
