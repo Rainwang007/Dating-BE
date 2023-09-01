@@ -19,8 +19,10 @@ def get_random_match():
             'age': random_profile.age,
             'location': random_profile.location,
             'bio': random_profile.bio,
-            'avatar_url': random_profile.avatar_url
+            'avatar_url': random_profile.avatar_url,
+            'user_id': random_profile.user_id  # 添加这一行
         }
+
 
         return jsonify({'match': random_profile_data}), 200
 
@@ -28,12 +30,11 @@ def get_random_match():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-
-@match.route('/api/matches/<int:target_user_id>/like', methods=['POST'])
+@match.route('/api/matches/<string:target_user_id>/like', methods=['POST'])
 @jwt_required()
 def like_user(target_user_id):
     current_user_id = get_jwt_identity()
-    target_user = User.query.filter_by(id=target_user_id).first_or_404(description='Target user not found')
+    target_user = Profile.query.filter_by(user_id=target_user_id).first_or_404(description='Target user not found')
 
     try:
         # 检查当前用户是否已经喜欢过目标用户
@@ -51,6 +52,7 @@ def like_user(target_user_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
 
 @match.route('/api/matches/<int:target_user_id>/dislike', methods=['POST'])
 @jwt_required()
