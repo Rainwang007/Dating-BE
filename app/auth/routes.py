@@ -76,6 +76,7 @@ def login():
 
     # 生成JWT
     token = jwt.encode({
+        'sub': user.id,
         'user_id': user.id,
         'exp': datetime.datetime.utcnow() + datetime.timedelta(days=10)
     }, os.getenv('JWT_SECRET_KEY'), algorithm='HS256')

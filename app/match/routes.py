@@ -1,47 +1,41 @@
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import User, Match, db
+from models import User, Profile, Match, db
+from random import choice
 
-match_bp = Blueprint('match', __name__)
+match = Blueprint('match', __name__) 
 
-matches = Blueprint('matches', __name__)
-
-@matches.route('/api/matches', methods=['GET'])
+@match.route('/api/matches/random', methods=['GET'])
 @jwt_required()
-def get_current_user_matches():
-    current_user_id = get_jwt_identity()  # 使用JWT获取当前用户ID
-
+def get_random_match():
+    current_user_id = get_jwt_identity()
     try:
-        # 从数据库中获取当前用户的所有匹配
-        current_user = User.query.filter_by(id=current_user_id).first()
+        all_profiles = Profile.query.filter(Profile.user_id != current_user_id).all()
+        if not all_profiles:
+            return jsonify({'error': 'No profiles available for matching'}), 404
+        random_profile = choice(all_profiles)
+        random_profile_data = {
+            'name': random_profile.name,
+            'age': random_profile.age,
+            'location': random_profile.location,
+            'bio': random_profile.bio,
+            'avatar_url': random_profile.avatar_url
+        }
 
-        if not current_user:
-            return jsonify({'error': 'User not found'}), 404
-
-        # 假设Match模型有一个方法get_matches(user_id)，用于获取用户的所有匹配
-        user_matches = Match.get_matches(current_user_id)
-
-        # 将匹配列表转换为字典列表
-        matches_list = [match.to_dict() for match in user_matches]
-
-        return jsonify({'matches': matches_list}), 200
+        return jsonify({'match': random_profile_data}), 200
 
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
 
-@matches.route('/api/matches/<int:target_user_id>/like', methods=['POST'])
+@match.route('/api/matches/<int:target_user_id>/like', methods=['POST'])
 @jwt_required()
 def like_user(target_user_id):
-    current_user_id = get_jwt_identity()  # 使用JWT获取当前用户ID
+    current_user_id = get_jwt_identity()
+    target_user = User.query.filter_by(id=target_user_id).first_or_404(description='Target user not found')
 
     try:
-        # 检查目标用户是否存在
-        target_user = User.query.filter_by(id=target_user_id).first()
-        if not target_user:
-            return jsonify({'error': 'Target user not found'}), 404
-
         # 检查当前用户是否已经喜欢过目标用户
         existing_match = Match.query.filter_by(user_id=current_user_id, target_user_id=target_user_id).first()
         if existing_match:
@@ -57,19 +51,14 @@ def like_user(target_user_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
-    
-    
-@matches.route('/matches/<int:target_user_id>/dislike', methods=['POST'])
+
+@match.route('/api/matches/<int:target_user_id>/dislike', methods=['POST'])
 @jwt_required()
 def dislike_user(target_user_id):
-    current_user_id = get_jwt_identity()  # 使用JWT获取当前用户ID
+    current_user_id = get_jwt_identity()
+    target_user = User.query.filter_by(id=target_user_id).first_or_404(description='Target user not found')
 
     try:
-        # 检查目标用户是否存在
-        target_user = User.query.filter_by(id=target_user_id).first()
-        if not target_user:
-            return jsonify({'error': 'Target user not found'}), 404
-
         # 检查当前用户是否已经对目标用户表示过不喜欢
         existing_match = Match.query.filter_by(user_id=current_user_id, target_user_id=target_user_id).first()
         if existing_match:

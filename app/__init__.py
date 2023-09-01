@@ -3,15 +3,16 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from flask_migrate import Migrate
 import os
 from dotenv import load_dotenv
 from config import Config
 from app.auth.routes import auth as auth_blueprint
 from app.chat.routes import chat as chat_blueprint
-from app.match.routes import match_bp as match_blueprint
+from app.match.routes import match as match_blueprint
 from app.profile.routes import profile as profile_blueprint
 from models import db
-from flask_cors import CORS
+
 
 load_dotenv()
 
@@ -21,9 +22,10 @@ load_dotenv()
 bcrypt = Bcrypt()
 jwt = JWTManager()
 
+
 def create_app():
     app = Flask(__name__)
-
+    migrate = Migrate(app, db)
     # 数据库配置
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -37,7 +39,9 @@ def create_app():
     jwt.init_app(app)
 
     # CORS 配置
-    CORS(app, resources={r"/api/*": {"origins": "your_domain.com"}})
+    CORS(app)
+
+    
 
     # 导入蓝图（Blueprints）
     app.register_blueprint(auth_blueprint)
@@ -45,8 +49,6 @@ def create_app():
     app.register_blueprint(match_blueprint)
     app.register_blueprint(profile_blueprint)
 
-    CORS(app)
-    
     with app.app_context():
          db.create_all()
 

@@ -31,8 +31,12 @@ def update_current_user_profile():
     data = request.json
     try:
         current_profile = Profile.query.filter_by(user_id=current_user_id).first()
+
+        # 如果Profile不存在，创建一个新的
         if not current_profile:
-            return jsonify({'error': 'Profile not found'}), 404
+            current_profile = Profile(user_id=current_user_id)
+            db.session.add(current_profile)
+
         if 'name' in data:
             current_profile.name = data['name']
         if 'age' in data:
@@ -43,8 +47,11 @@ def update_current_user_profile():
             current_profile.bio = data['bio']
         if 'avatar_url' in data:
             current_profile.avatar_url = data['avatar_url']
+
         db.session.commit()
         return jsonify({'message': 'Profile updated successfully'}), 200
+
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
