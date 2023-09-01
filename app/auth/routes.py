@@ -47,7 +47,7 @@ def register():
     hashed_password = generate_password_hash(password, method='sha256')
 
     # 创建新用户
-    new_user = User(username=username, email=email, password=hashed_password)
+    new_user = User(username=username, email=email, password_hash=hashed_password)  
     db.session.add(new_user)
     db.session.commit()
 
@@ -59,39 +59,42 @@ def login():
     data = request.get_json()
 
     # 数据验证
-    if 'username' not in data or 'password' not in data:
-        return jsonify({'error': 'Username and password are required'}), 400
+    if 'email' not in data or 'password' not in data:
+        return jsonify({'error': 'Email and password are required'}), 400
 
-    username = data['username']
+    email = data['email']
     password = data['password']
 
     # 查找用户
-    user = User.query.filter_by(username=username).first()
+    user = User.query.filter_by(email=email).first()
     if not user:
-        return jsonify({'error': 'Username does not exist'}), 401
+        return jsonify({'error': 'Email does not exist'}), 401
 
     # 验证密码
-    if not check_password_hash(user.password, password):
+    if not check_password_hash(user.password_hash, password):
         return jsonify({'error': 'Password is incorrect'}), 401
 
     # 生成JWT
     token = jwt.encode({
-    'user_id': 'some_user_id',
-    'exp': datetime.datetime.utcnow() + datetime.timedelta(days=10)
-    }, os.getenv('JWT_SECRET_KEY'), algorithm='HS256') 
+        'user_id': user.id,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=10)
+    }, os.getenv('JWT_SECRET_KEY'), algorithm='HS256')
 
-    return jsonify({'token': token}), 200
+    return jsonify({'token': token, 'message': 'Login successful'}), 200
+
+
 
 
 def get_current_user():
-    # 假设从Flask的session中获取当前用户ID
     user_id = session.get('user_id')
-    # 在实际应用中，你可能需要从数据库或其他存储中获取用户对象
-    return {'id': user_id, 'username': 'example_user'}
+    if user_id is not None:
+        user = User.query.get(user_id)
+        if user:
+            return {'id': user.id, 'username': user.username, 'email': user.email}
+    return None
 
 def clear_user_resources(user):
-    # 在这里释放与用户相关的服务器资源
-    # 例如，关闭数据库连接，清理缓存等
+    # placeholder for now
     pass
 
 @auth.before_request

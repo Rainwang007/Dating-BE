@@ -10,13 +10,13 @@ from app.auth.routes import auth as auth_blueprint
 from app.chat.routes import chat as chat_blueprint
 from app.match.routes import match_bp as match_blueprint
 from app.profile.routes import profile as profile_blueprint
-
+from models import db
 
 load_dotenv()
 
 
 # 初始化各种扩展
-db = SQLAlchemy()
+
 bcrypt = Bcrypt()
 jwt = JWTManager()
 
