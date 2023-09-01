@@ -33,5 +33,4 @@ class Chat(db.Model):
     message = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# 创建表
-db.create_all()
+

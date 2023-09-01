@@ -23,7 +23,7 @@ def test_register(client):
     assert response.status_code == 201
     assert b"Registration successful" in response.data
 
-def test_login(client):
+def test_login(client, mock_jwt):
     # 准备测试数据
     user_credentials = {
         "username": "existinguser",
@@ -36,6 +36,13 @@ def test_login(client):
     # 检查响应状态码和数据
     assert response.status_code == 200
     assert b"Login successful" in response.data
+
+    # 从响应中获取模拟的JWT令牌
+    login_data = json.loads(response.data)
+    token = login_data.get("token")
+
+    assert token == "mocked_token"  # 确保使用了模拟的令牌
+
 
 def test_logout(client):
     # 首先，模拟一个已登录的用户

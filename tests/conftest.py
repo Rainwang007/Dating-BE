@@ -2,6 +2,15 @@ import pytest
 from app import create_app
 from app import db as _db
 
+
+@pytest.fixture
+def mock_jwt(monkeypatch):
+    def mock_create_token(*args, **kwargs):
+        return "mocked_token"
+
+    monkeypatch.setattr("flask_jwt_extended.create_access_token", mock_create_token)
+
+
 @pytest.fixture(scope='session')
 def app():
     """Session-wide test `Flask` application."""

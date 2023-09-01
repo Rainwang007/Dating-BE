@@ -5,6 +5,7 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
+from config import Config
 from app.auth.routes import auth as auth_blueprint
 from app.chat.routes import chat as chat_blueprint
 from app.match.routes import match_bp as match_blueprint
@@ -42,5 +43,9 @@ def create_app():
     app.register_blueprint(chat_blueprint)
     app.register_blueprint(match_blueprint)
     app.register_blueprint(profile_blueprint)
+
+    with app.app_context():
+         db.create_all()
+
 
     return app
