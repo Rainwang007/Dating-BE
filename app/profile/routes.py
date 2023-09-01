@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import Profile, db
+from models import Profile, User, db  # 导入User模型
 
 profile = Blueprint('profile', __name__)
 
@@ -8,8 +8,13 @@ profile = Blueprint('profile', __name__)
 @jwt_required()
 def get_current_user_profile():
     current_user_id = get_jwt_identity()
+    user = User.query.filter_by(id=current_user_id).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    actual_user_id = user.user_id  # 获取User模型中的user_id字段
+
     try:
-        current_profile = Profile.query.filter_by(user_id=current_user_id).first()
+        current_profile = Profile.query.filter_by(user_id=actual_user_id).first()
         if not current_profile:
             return jsonify({'error': 'Profile not found'}), 404
         profile_data = {
@@ -28,13 +33,18 @@ def get_current_user_profile():
 @jwt_required()
 def update_current_user_profile():
     current_user_id = get_jwt_identity()
+    user = User.query.filter_by(id=current_user_id).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    actual_user_id = user.user_id  # 获取User模型中的user_id字段
+
     data = request.json
     try:
-        current_profile = Profile.query.filter_by(user_id=current_user_id).first()
+        current_profile = Profile.query.filter_by(user_id=actual_user_id).first()
 
         # 如果Profile不存在，创建一个新的
         if not current_profile:
-            current_profile = Profile(user_id=current_user_id)
+            current_profile = Profile(user_id=actual_user_id)
             db.session.add(current_profile)
 
         if 'name' in data:
@@ -54,4 +64,3 @@ def update_current_user_profile():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
-

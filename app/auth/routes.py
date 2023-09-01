@@ -5,9 +5,10 @@ import jwt
 import datetime
 import re
 import logging
-from models import db, User
+from models import db, User, Profile
 import os
 from dotenv import load_dotenv
+import uuid
 
 
 load_dotenv()
@@ -43,14 +44,15 @@ def register():
     if User.query.filter_by(email=email).first():
         return jsonify({'error': 'Email already exists'}), 400
 
+    
     # 密码加密
     hashed_password = generate_password_hash(password, method='sha256')
 
     # 创建新用户
-    new_user = User(username=username, email=email, password_hash=hashed_password)  
+    generated_user_id = str(uuid.uuid4())
+    new_user = User(user_id=generated_user_id, username=username, email=email, password_hash=hashed_password)
     db.session.add(new_user)
     db.session.commit()
-
     return jsonify({'message': 'Registered successfully'}), 201
 
 
