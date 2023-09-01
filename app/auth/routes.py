@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, g, session
 from werkzeug.security import generate_password_hash, check_password_hash
-from email_validator import validate_email, EmailNotValidError  # 需要安装email-validator包
+from email_validator import validate_email, EmailNotValidError  
 import jwt
 import datetime
 import re
