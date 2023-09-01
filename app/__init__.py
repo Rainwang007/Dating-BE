@@ -11,6 +11,7 @@ from app.chat.routes import chat as chat_blueprint
 from app.match.routes import match_bp as match_blueprint
 from app.profile.routes import profile as profile_blueprint
 from models import db
+from flask_cors import CORS
 
 load_dotenv()
 
@@ -44,8 +45,12 @@ def create_app():
     app.register_blueprint(match_blueprint)
     app.register_blueprint(profile_blueprint)
 
+    CORS(app)
+    
     with app.app_context():
          db.create_all()
 
 
     return app
+
+

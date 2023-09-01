@@ -1,26 +1,25 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import User, db 
+from models import Profile, db
 
 profile = Blueprint('profile', __name__)
 
 @profile.route('/api/profile', methods=['GET'])
 @jwt_required()
 def get_current_user_profile():
-    current_user_id = get_jwt_identity()  # 使用JWT获取当前用户ID
-
+    current_user_id = get_jwt_identity()
     try:
-        # 从数据库中获取当前用户的资料
-        current_user = User.query.filter_by(id=current_user_id).first()
-
-        if not current_user:
-            return jsonify({'error': 'User not found'}), 404
-
-        # 假设User模型有一个方法to_dict()，用于将用户资料转换为字典
-        user_profile = current_user.to_dict()
-
-        return jsonify({'profile': user_profile}), 200
-
+        current_profile = Profile.query.filter_by(user_id=current_user_id).first()
+        if not current_profile:
+            return jsonify({'error': 'Profile not found'}), 404
+        profile_data = {
+            'name': current_profile.name,
+            'age': current_profile.age,
+            'location': current_profile.location,
+            'bio': current_profile.bio,
+            'avatar_url': current_profile.avatar_url
+        }
+        return jsonify({'profile': profile_data}), 200
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -28,29 +27,24 @@ def get_current_user_profile():
 @profile.route('/api/profile', methods=['PUT'])
 @jwt_required()
 def update_current_user_profile():
-    current_user_id = get_jwt_identity()  # 使用JWT获取当前用户ID
-    data = request.json  # 获取请求的JSON数据
-
+    current_user_id = get_jwt_identity()
+    data = request.json
     try:
-        # 从数据库中获取当前用户的资料
-        current_user = User.query.filter_by(id=current_user_id).first()
-
-        if not current_user:
-            return jsonify({'error': 'User not found'}), 404
-
-        # 更新用户资料
-        if 'username' in data:
-            current_user.username = data['username']
-        if 'email' in data:
-            current_user.email = data['email']
+        current_profile = Profile.query.filter_by(user_id=current_user_id).first()
+        if not current_profile:
+            return jsonify({'error': 'Profile not found'}), 404
+        if 'name' in data:
+            current_profile.name = data['name']
+        if 'age' in data:
+            current_profile.age = data['age']
+        if 'location' in data:
+            current_profile.location = data['location']
         if 'bio' in data:
-            current_user.bio = data['bio']
-        # ... 其他需要更新的字段
-
+            current_profile.bio = data['bio']
+        if 'avatar_url' in data:
+            current_profile.avatar_url = data['avatar_url']
         db.session.commit()
-
         return jsonify({'message': 'Profile updated successfully'}), 200
-
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
