@@ -1,15 +1,10 @@
-    # config.py
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 MYSQL_CONFIG = {
-    'host': 'localhost',
-    'user': 'username',
-    'password': 'password',
-    'database': 'dating_app'
+    'host': os.getenv('MYSQL_HOST'),
+    'user': os.getenv('MYSQL_USER'),
+    'password': os.getenv('MYSQL_PASSWORD'),
+    'database': os.getenv('MYSQL_DATABASE')
 }
-
-MONGODB_CONFIG = {
-    'host': 'localhost',
-    'port': 27017,
-    'database': 'dating_app'
-}
-
-

@@ -1,26 +1,39 @@
 from flask import Flask
-from flask_jwt_extended import JWTManager
 from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager
+from flask_cors import CORS
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+
+
+# 初始化各种扩展
 db = SQLAlchemy()
-
+bcrypt = Bcrypt()
+jwt = JWTManager()
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_pyfile('../config.py')
-    app.config['SQLALCHEMY_DATABASE_URI'] = '你的数据库连接字符串'
 
-    jwt = JWTManager(app)
+    # 数据库配置
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    from .auth.routes import auth_bp
-    from .profile.routes import profile_bp
-    from .match.routes import match_bp
-    from .chat.routes import chat_bp
-    
+    # JWT 配置
+    app.config['JWT_SECRET_KEY'] = 'your-secret-key'
+
+    # 初始化各种扩展
     db.init_app(app)
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(profile_bp)
-    app.register_blueprint(match_bp)
-    app.register_blueprint(chat_bp)
+    bcrypt.init_app(app)
+    jwt.init_app(app)
+
+    # CORS 配置
+    CORS(app, resources={r"/api/*": {"origins": "your_domain.com"}})
+
+    # 导入蓝图（Blueprints）
+    # 例如：from .auth import auth as auth_blueprint
+    # app.register_blueprint(auth_blueprint)
 
     return app

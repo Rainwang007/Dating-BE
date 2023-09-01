@@ -6,9 +6,14 @@ import datetime
 import re
 import logging
 from models import db, User
+import os
+from dotenv import load_dotenv
 
+
+load_dotenv()
 auth = Blueprint('auth', __name__)
 logger = logging.getLogger(__name__)
+
 
 @auth.route('/register', methods=['POST'])
 def register():
@@ -73,7 +78,7 @@ def login():
     token = jwt.encode({
     'user_id': 'some_user_id',
     'exp': datetime.datetime.utcnow() + datetime.timedelta(days=10)
-    }, 'your_secret_key', algorithm='HS256')  # 请替换为你实际使用的密钥
+    }, os.getenv('JWT_SECRET_KEY'), algorithm='HS256')  # 请替换为你实际使用的密钥
 
     return jsonify({'token': token}), 200
 
