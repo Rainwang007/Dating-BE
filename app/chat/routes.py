@@ -1,12 +1,12 @@
 
 from flask import Blueprint, request, jsonify, g
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import Chat, Match, User, db
-import logging
+from models import  Match, User, db
+
 
 chat = Blueprint('chat', __name__)
 
-@chat.route('/api/chat', methods=['GET'])
+@chat.route('/api/get_email', methods=['GET'])
 @jwt_required()
 def get_email():
     current_user_id = get_jwt_identity()
