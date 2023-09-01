@@ -1,7 +1,8 @@
 
 from flask import Blueprint, request, jsonify, g
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import Chat, db
+from models import Chat, Match, db
+import logging
 
 chat = Blueprint('chat', __name__)
 
@@ -30,6 +31,10 @@ def send_message():
 
     target_user_id = data.get('target_user_id')
     message_content = data.get('message')
+    existing_match = Match.query.filter_by(user1_id=current_user_id, user2_id=target_user_id, status='liked').first()
+
+    if not existing_match:
+        return jsonify({'error': 'You are not allowed to chat with this user'}), 403
 
     if not target_user_id or not message_content:
         return jsonify({'error': 'Target user ID and message content are required'}), 400
@@ -43,5 +48,6 @@ def send_message():
         return jsonify({'message': 'Message sent successfully'}), 201
 
     except Exception as e:
+        logging.error(f"An error occurred while sending message: {e}")
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
