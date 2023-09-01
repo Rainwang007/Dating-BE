@@ -79,7 +79,7 @@ def login():
     # 生成JWT
     token = jwt.encode({
         'sub': user.id,
-        'user_id': user.id,
+        'user_id': user.user_id,
         'exp': datetime.datetime.utcnow() + datetime.timedelta(days=10)
     }, os.getenv('JWT_SECRET_KEY'), algorithm='HS256')
 
@@ -93,7 +93,7 @@ def get_current_user():
     if user_id is not None:
         user = User.query.get(user_id)
         if user:
-            return {'id': user.id, 'username': user.username, 'email': user.email}
+            return {'id': user.id, 'username': user.username, 'email': user.email,'user_id':user.user_id}
     return None
 
 def clear_user_resources(user):
