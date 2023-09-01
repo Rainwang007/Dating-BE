@@ -38,12 +38,12 @@ def like_user(target_user_id):
 
     try:
         # 检查当前用户是否已经喜欢过目标用户
-        existing_match = Match.query.filter_by(user_id=current_user_id, target_user_id=target_user_id).first()
+        existing_match = Match.query.filter_by(user1_id=current_user_id, user2_id=target_user.user_id).first()
         if existing_match:
             return jsonify({'error': 'Already liked this user'}), 400
 
         # 创建新的匹配记录
-        new_match = Match(user_id=current_user_id, target_user_id=target_user_id, status='liked')
+        new_match = Match(user1_id=current_user_id, user2_id=target_user.user_id, status='liked')
         db.session.add(new_match)
         db.session.commit()
 
@@ -52,6 +52,8 @@ def like_user(target_user_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+
 
 
 @match.route('/api/matches/<int:target_user_id>/dislike', methods=['POST'])
