@@ -5,6 +5,11 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
+from app.auth.routes import auth as auth_blueprint
+from app.chat.routes import chat as chat_blueprint
+from app.match.routes import match_bp as match_blueprint
+from app.profile.routes import profile as profile_blueprint
+
 
 load_dotenv()
 
@@ -33,7 +38,9 @@ def create_app():
     CORS(app, resources={r"/api/*": {"origins": "your_domain.com"}})
 
     # 导入蓝图（Blueprints）
-    # 例如：from .auth import auth as auth_blueprint
-    # app.register_blueprint(auth_blueprint)
+    app.register_blueprint(auth_blueprint)
+    app.register_blueprint(chat_blueprint)
+    app.register_blueprint(match_blueprint)
+    app.register_blueprint(profile_blueprint)
 
     return app
