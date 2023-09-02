@@ -54,12 +54,12 @@ This is a full-stack dating application consisting of both frontend and backend 
 
 ## Deployment
 
-- The frontend can be deployed on Vercel.
-- The backend can be deployed on Heroku.
+- The frontend is deployed on Vercel: https://dating-fe.vercel.app/
+- The backend is be deployed on Heroku: https://dating-be-rain-031bf3f92be1.herokuapp.com/
 
 For detailed deployment steps, please refer to the individual READMEs in each repository.
 
 ## Contact
 
 - **Name**: Wang Jiantao
-- **Email**: [your-email@example.com](mailto:your-email@example.com)
+- **Email**: [rainwangjiantao@gmail.com](mailto:rainwangjiantao@gmail.com)
